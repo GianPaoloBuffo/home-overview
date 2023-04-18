@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>My Home</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"
+            integrity="sha512-1QvjE7BtotQjkq8PxLeF6P46gEpBRXuskzIVgjFpekzFVF4yjRgrQvTG1MTOJ3yQgvTteKAcO7DSZI92+u/yZw=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"
+            integrity="sha512-iKDtgDyTHjAitUDdLljGhenhPwrbBfqTKWO1mkhSFH3A7blITC9MhYon6SjnMhp4o0rADGw9yAC6EW4t5a4K3g=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        const HOME_ID = 1
+        let stompClient = null
+
+        function connectWebSocket() {
+            const socket = new SockJS('http://localhost:8080/home-overview')
+            stompClient = Stomp.over(socket)
+            stompClient.connect({}, () => {
+                stompClient.subscribe('/topic/readings', response => {
+                    const sensorReadings = JSON.parse(response.body)
+                    sensorReadings.forEach(sr => {
+                        $(`#sensor-${sr.sensorId}`).text(sr.reading)
+                    })
+                })
+            })
+        }
+
+        function loadHome() {
+            $.ajax({
+                url: `http://localhost:8080/api/homes/${HOME_ID}`,
+                method: 'GET',
+                success: home => {
+                    home.rooms.forEach(room => {
+                        const name = room.name
+                        const sensors = room.sensors
+                        $('#result').append(`<h2>${name}</h2>`)
+
+                        sensors.forEach(sensor => {
+                            const type = sensor.type
+                            const name = type.charAt(0).toUpperCase() + type.slice(1).toLowerCase()
+                            $('#result').append(`<p">${name}: <span id="sensor-${sensor.id}"></span><span class="${type}"></span></p>`)
+                            setSensorUnits()
+                        })
+                    })
+                },
+                error: () => {
+                    $('#result').html('Home not found')
+                }
+            })
+        }
+
+        function setSensorUnits() {
+            $('.HUMIDITY').text(' %')
+            $('.TEMPERATURE').text(' C')
+        }
+
+        window.onload = () => {
+            connectWebSocket()
+            loadHome()
+        };
+    </script>
+</head>
+<body>
+<h1>My Home</h1>
+<div id="result"></div>
+</body>
+</html>

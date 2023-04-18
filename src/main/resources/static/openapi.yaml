@@ -1,0 +1,346 @@
+openapi: 3.0.0
+info:
+  title: Home Overview API
+  description: API to manage the sensors, rooms and residents of a home
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+paths:
+  /api/homes:
+    post:
+      tags:
+        - Home
+      summary: Create a new home
+      operationId: createHome
+      requestBody:
+        description: Request body for creating a new home
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HomeRequest'
+      responses:
+        '201':
+          description: Home created successfully
+          headers:
+            Location:
+              description: URL of the newly created home
+              schema:
+                type: string
+              example: /api/homes/1
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeResponse'
+        '400':
+          description: Invalid request
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: Invalid request. Make sure the sensor type is one of [TEMPERATURE, HUMIDITY]
+    get:
+      tags:
+        - Home
+      summary: Get a home by ID
+      operationId: getHomeById
+      parameters:
+        - name: id
+          in: path
+          description: ID of the home to retrieve
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Home retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeResponse'
+        '404':
+          description: Home not found
+  /api/homes/{id}/rooms:
+    post:
+      tags:
+        - Home
+      summary: Create a new room for a home
+      operationId: createRoom
+      parameters:
+        - name: id
+          in: path
+          description: ID of the home to add the room to
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: Request body for creating a new room
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoomRequest'
+      responses:
+        '201':
+          description: Room created successfully
+          headers:
+            Location:
+              description: URL of the newly created room
+              schema:
+                type: string
+              example: /api/homes/1/rooms/1
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomResponse'
+        '400':
+          description: Invalid request
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: Invalid request. Make sure the sensor type is one of [TEMPERATURE, HUMIDITY, LIGHT]
+        '404':
+          description: Home not found
+  /api/rooms/{id}:
+    get:
+      tags:
+        - Rooms
+      summary: Get a room by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Numeric ID of the room to get
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomResponse'
+        '404':
+          description: Room not found
+    put:
+      tags:
+        - Rooms
+      summary: Update a room by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Numeric ID of the room to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoomRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomResponse'
+        '404':
+          description: Room not found
+    delete:
+      tags:
+        - Rooms
+      summary: Delete a room by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Numeric ID of the room to delete
+      responses:
+        '204':
+          description: Room deleted successfully
+        '404':
+          description: Room not found
+  /api/sensors:
+    post:
+      tags:
+        - Sensors
+      summary: Create a new sensor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SensorRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SensorResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+    delete:
+      tags:
+        - Sensors
+      summary: Delete a sensor by ID
+      parameters:
+        - $ref: '#/components/parameters/SensorId'
+      responses:
+        '204':
+          description: No Content
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/residents:
+    post:
+      tags:
+        - Residents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResidentRequest'
+      responses:
+        '201':
+          description: Resident created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResidentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /api/residents/{id}:
+    put:
+      tags:
+        - Residents
+      parameters:
+        - $ref: '#/components/parameters/ResidentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResidentRequest'
+      responses:
+        '200':
+          description: Resident updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResidentResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - Residents
+      parameters:
+        - $ref: '#/components/parameters/ResidentId'
+      responses:
+        '204':
+          description: Resident deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  schemas:
+    HomeRequest:
+      type: object
+      properties:
+        rooms:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoomRequest'
+    RoomRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 50
+        sensors:
+          type: array
+          items:
+            $ref: '#/components/schemas/SensorRequest'
+        residents:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResidentRequest'
+    SensorRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        type:
+          $ref: '#/components/schemas/SensorType'
+    ResidentRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+          minLength: 3
+          maxLength: 50
+    HomeResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        rooms:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoomResponse'
+    RoomResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        sensors:
+          type: array
+          items:
+            $ref: '#/components/schemas/SensorResponse'
+    SensorResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        type:
+          $ref: '#/components/schemas/SensorType'
+    ResidentResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+    SensorReadingResponse:
+      type: object
+      properties:
+        sensorId:
+          type: integer
+          format: int64
+        reading:
+          type: any
+    SensorType:
+      type: string
+      enum:
+        - HUMIDITY
+        - TEMPERATURE

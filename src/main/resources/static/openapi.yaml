@@ -203,6 +203,7 @@ paths:
           $ref: '#/components/responses/NotFound'
   /api/residents:
     post:
+      summary: Create a new resident
       tags:
         - Residents
       requestBody:
@@ -222,6 +223,7 @@ paths:
           $ref: '#/components/responses/BadRequest'
   /api/residents/{id}:
     put:
+      summary: Update a resident by ID
       tags:
         - Residents
       parameters:
@@ -242,6 +244,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
     delete:
+      summary: Delete a resident by ID
       tags:
         - Residents
       parameters:

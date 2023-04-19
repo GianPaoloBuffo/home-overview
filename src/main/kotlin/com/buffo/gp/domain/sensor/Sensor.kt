@@ -5,7 +5,6 @@ import com.buffo.gp.domain.Room
 import jakarta.persistence.*
 
 @Entity
-@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 abstract class Sensor<T>(
 
     @ManyToOne
